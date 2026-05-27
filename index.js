@@ -877,6 +877,8 @@ break;
 // ================= CLEAR SESSION =================
 case "clearsession": {
 Reply("𝚈𝚘𝚞 𝚊𝚛𝚎 𝚗𝚘𝚝 𝚊𝚕𝚕𝚘𝚠𝚎𝚍 𝚝𝚘 𝚞𝚜𝚎 𝚝𝚑𝚒𝚜 𝚌𝚘𝚖𝚖𝚊𝚗𝚍")
+}
+break;
 
 // ================= ANTIDELETE =================
 case "antidelete": {
