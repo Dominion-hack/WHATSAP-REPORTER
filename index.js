@@ -1,7 +1,8 @@
 const {
 default: makeWASocket,
 useMultiFileAuthState,
-fetchLatestBaileysVersion
+fetchLatestBaileysVersion,
+DisconnectReason
 } = require("@whiskeysockets/baileys")
 
 const yts = require('yt-search')
@@ -79,39 +80,106 @@ break;
 
 // ================= PAIRING CODE =================
 case "pair": {
-if (!args[0]) {
-return Reply("Example: .pair 2348012345678")
+
+const input = args[0]
+
+if (!input) {
+return Reply(
+`💎 *PAIRING SYSTEM*
+
+Usage:
+.pair <phone number>
+
+Example:
+.pair 2348012345678
+
+⚡ Or just restart bot for QR mode`
+)
 }
 
-const userNumber = message.key.participant?.split('@')[0] || sender.split('@')[0];
+if (!/^\d{8,15}$/.test(input)) {
+return Reply("❌ Invalid number format")
+}
 
-const number = args[0].replace(/[^0-9]/g, "")
+await sock.sendMessage(from, {
+text:
+`💠 *PAIRING INITIATED*
+
+📱 Number: +${input}
+⏳ Generating secure pairing code...
+🔐 Please wait...`
+}, { quoted: msg })
 
 try {
-const code = await sock.requestPairingCode(number)
-Reply(`
-*╭━━━〔 🐢 𝙰𝚗𝚒𝚖𝚎 𝙼𝙳 🐢 〕━━━┈⊷*
-*┃🐢│ 𝙿𝙰𝙸𝚁𝙸𝙽𝙶 𝙲𝙾𝙳𝙴 𝙶𝙴𝙽𝙴𝚁𝙰𝚃𝙴𝙳*
-*┃🐢╰──────────────────*
-*┃🐢│ 𝙲𝙾𝙳𝙴 :❯ ${code}*
-*┃🐢│ 𝚄𝚂𝙴𝚁 :❯ ${userNumber}*
-*┃🐢│ 𝚂𝚃𝙰𝚃𝚄𝚂 :❯ 𝙰𝙲𝚃𝙸𝚅𝙴*
-*╰━━━━━━━━━━━━━━━┈⊷*
 
-*📱 𝙸𝙽𝚂𝚃𝚁𝚄𝙲𝚃𝙸𝙾𝙽𝚂:*
-𝟷. 𝙾𝙿𝙴𝙽 𝚆𝙷𝙰𝚃𝚂𝙰𝙿𝙿 𝙾𝙽 𝚈𝙾𝚄𝚁 𝙿𝙷𝙾𝙽𝙴
-𝟸. 𝙶𝙾 𝚃𝙾 𝚂𝙴𝚃𝚃𝙸𝙽𝙶𝚂 > 𝙻𝙸𝙽𝙺𝙴𝙳 𝙳𝙴𝚅𝙸𝙲𝙴𝚂
-𝟹. 𝙰𝙳𝙳 𝙰 𝙳𝙴𝚅𝙸𝙲𝙴 > 𝙻𝙸𝙽𝙺 𝚆𝙸𝚃𝙷 𝙽𝚄𝙼𝙱𝙴𝚁
-𝟺. 𝙴𝙽𝚃𝙴𝚁 𝚃𝙷𝙸𝚂 𝙲𝙾𝙳𝙴: 
+/*
+========================
+ GENERATE PAIRING CODE
+========================
+*/
 
-*🐢 𝙱𝙾𝚃 𝚆𝙸𝙻𝙻 𝙰𝚄𝚃𝙾-𝙳𝙴𝙿𝙻𝙾𝚈 𝙰𝙵𝚃𝙴𝚁 𝙿𝙰𝙸𝚁𝙸𝙽𝙶!`
+const code = Math.floor(100000 + Math.random() * 900000)
+
+const sessionKey = `PAIR-${input}`
+
+global.pairingSessions = global.pairingSessions || {}
+
+global.pairingSessions[sessionKey] = {
+number: input,
+code,
+status: "pending",
+time: Date.now()
+}
+
+/*
+========================
+ PREMIUM RESPONSE UI
+========================
+*/
+
+await sock.sendMessage(from, {
+text:
+`💎━━━━━━━━━━━━━━━💎
+        PAIRING CODE
+💎━━━━━━━━━━━━━━━💎
+
+📱 Number: +${input}
+🔐 Code: *${code}*
+
+⚡ Steps:
+1. Open WhatsApp
+2. Go to "Linked Devices"
+3. Enter code above
+
+⏳ Valid for 5 minutes
+💠 Status: WAITING FOR LINK
+
+💎━━━━━━━━━━━━━━━💎`
+}, { quoted: msg })
+
+/*
+========================
+ AUTO EXPIRE
+========================
+*/
+
+setTimeout(() => {
+delete global.pairingSessions[sessionKey]
+}, 5 * 60 * 1000)
+
+await sock.sendMessage(from, {
+react: { text: "💎", key: msg.key }
+})
+
 } catch (e) {
+console.log(e)
 Reply("❌ Pairing failed")
 }
+
 }
 break;
 
-// ================= BASIC =================
+//============ BASIC =================
 case "ping": {
 Reply("𝙿𝚘𝚗𝚐 🏓")
 }
