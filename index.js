@@ -210,7 +210,7 @@ Reply(`
 }
 break;
 
-case "fact"
+case "fact":
 case "facts": {
 Reply("𝙷𝚘𝚗𝚎𝚢 𝚗𝚎𝚟𝚎𝚛 𝚜𝚙𝚘𝚒𝚕𝚜")
 }
